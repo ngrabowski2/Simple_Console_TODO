@@ -38,6 +38,7 @@ do
     }
 } while (userInput != "e");
 
+//Displays all Todos
 void SeeAllTodos(List<string> todos)
 {
     for (int i = 0; i < todos.Count; i++)
@@ -46,85 +47,114 @@ void SeeAllTodos(List<string> todos)
     }
 }
 
+//Adds a todo
 List<string> AddTodo(List<string> todos)
 {
     List<string> result = new List<string>(todos);
-    do
+    bool validInput = false;
+    while (!validInput)
     {
         Console.WriteLine("Enter the TODO description");
         string userInput = Console.ReadLine();
-        if (userInput.Length > 0 && !todos.Contains(userInput))
+        validInput = IsTODOValid(todos, userInput);
+        if (validInput)
         {
             result.Add(userInput);
             Console.WriteLine("TODO successfully added: " + result[^1]);
+            break;
         }
-        else if (userInput.Length == 0)
-        {
-            Console.WriteLine("The description cannot be empty.");
-        }
-        else if (todos.Contains(userInput))
-        {
-            Console.WriteLine("The description must be unique.");
-        }
-        else
-        {
-            Console.WriteLine("Error");
-        }
-    } while (userInput.Length == 0 || todos.Contains(userInput));
+    }
     return result;
 }
 
+//removes a todo given at an index
 List<string> RemoveTodo(List<string> todos)
 {
     if (todos.Count != 0)
     {
         List<string> result = new List<string>(todos);
         string userInput;
-        do
+        bool indexValid = false;
+        int indexToRemove;
+        while (!indexValid)
         {
+
             Console.WriteLine("Select the index of the TODO you want to remove");
             SeeAllTodos(todos);
             userInput = Console.ReadLine();
-            int indexToRemove;
+            indexValid = IsIndexValid(todos.Count, userInput, out indexToRemove);
             //Input is successfully parsed
-            if (int.TryParse(userInput, out indexToRemove))
-            {
-                //Index is valid
-                if (indexToRemove > 0 && indexToRemove <= todos.Count)
-                {
-                    Console.WriteLine("TODO removed: " + todos[--indexToRemove]);
-                    result.RemoveAt(indexToRemove);
-                    //Index is out of bounds
-                }
-                else
-                {
-                    Console.WriteLine("The given index is not valid");
-                    //Allows for loop to continue
-                    userInput = "";
-                }
+            if (indexValid) {
+                Console.WriteLine("TODO removed: " + todos[indexToRemove]);
+                result.RemoveAt(indexToRemove);
+                break;
             }
-            else
-            //Index not parsed
-            {
-                //Empty
-                if (userInput == "")
-                {
-                    Console.WriteLine("Selected index cannot be empty.");
-                    //Index not number or error parsing
-                }
-                else
-                {
-                    Console.WriteLine("The given index is not valid");
-                    //Allows for loop to continue
-                    userInput = "";
-                }
-            }
-        } while (userInput.Length == 0);
+        }
         return result;
     }
     else
     {
         Console.WriteLine("No TODOs have been added yet");
         return todos;
+    }
+}
+
+//Checks if new todo is valid
+bool IsTODOValid(List<string> todos, string newTodo)
+{
+    if (newTodo.Length > 0 && !todos.Contains(newTodo))
+    {
+        return true;
+    }
+    else if (newTodo.Length == 0)
+    {
+        Console.WriteLine("The description cannot be empty.");
+        return false;
+    }
+    else if (todos.Contains(newTodo))
+    {
+        Console.WriteLine("The description must be unique.");
+        return false;
+    }
+    else
+    {
+        Console.WriteLine("Error");
+        return false;
+    }
+}
+
+//Checks if index of todo to remove is valid
+bool IsIndexValid(int numOfTodos, string index, out int parsedIndex)
+{
+    //Parses and index is within bounds
+    if (int.TryParse(index, out parsedIndex) && parsedIndex > 0 && parsedIndex <= numOfTodos)
+    {
+        //Convert to 0 index
+        parsedIndex--;
+        return true;
+        //User inputs empty index
+    } else if (index.Length == 0)
+    {
+        InvalidIndexHandler("empty");
+        return false;
+        //Index is out of bounds or there is some other error:
+    } else
+    {
+        InvalidIndexHandler("OutOfBounds");
+        return false;
+    }
+}
+// Handles invalid index
+void InvalidIndexHandler(string error)
+{
+    if (error == "empty")
+    {
+        Console.WriteLine("Selected index cannot be empty.");
+    } else if (error == "OutOfBounds")
+    {
+        Console.WriteLine("The given index is not valid.");
+    } else
+    {
+        Console.WriteLine("Internal Error");
     }
 }
